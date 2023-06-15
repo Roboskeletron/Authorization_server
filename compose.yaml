@@ -1,0 +1,9 @@
+services:
+  postgres:
+    image: 'postgres:latest'
+    environment:
+      POSTGRES_DB: auth_server_dev_db
+      POSTGRES_USER: dev
+      POSTGRES_PASSWORD: devP@ssw0rd
+    ports:
+      - 5433:5432

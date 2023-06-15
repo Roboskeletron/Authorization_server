@@ -1,0 +1,18 @@
+server:
+  port: 9000
+
+logging:
+  level:
+    org.springframework.security: trace
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5433/auth_server_dev_db
+    driver-class-name: org.postgresql.Driver
+    username: dev
+    password: devP@ssw0rd
+  jpa:
+    show-sql: true
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQL10Dialect
+    hibernate:
+      ddl-auto: update
