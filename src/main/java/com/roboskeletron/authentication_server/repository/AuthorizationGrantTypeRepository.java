@@ -9,4 +9,5 @@ import java.util.Optional;
 @Repository
 public interface AuthorizationGrantTypeRepository extends JpaRepository<AuthorizationGrantType, Integer> {
     Optional<AuthorizationGrantType> findByName(String name);
+    boolean existsByName(String name);
 }

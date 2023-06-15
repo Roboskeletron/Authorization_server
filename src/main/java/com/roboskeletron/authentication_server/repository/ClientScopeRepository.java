@@ -9,4 +9,5 @@ import java.util.Optional;
 @Repository
 public interface ClientScopeRepository extends JpaRepository<ClientScope, Integer> {
     Optional<ClientScope> findByName(String name);
+    boolean existsByName(String name);
 }

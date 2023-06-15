@@ -9,4 +9,5 @@ import java.util.Optional;
 @Repository
 public interface UserScopeRepository extends JpaRepository<UserScope, Integer> {
     Optional<UserScope> findByName(String name);
+    boolean existsByName(String name);
 }

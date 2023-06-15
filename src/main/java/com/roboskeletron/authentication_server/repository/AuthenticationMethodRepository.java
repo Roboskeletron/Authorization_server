@@ -9,4 +9,5 @@ import java.util.Optional;
 @Repository
 public interface AuthenticationMethodRepository extends JpaRepository<AuthenticationMethod, Integer> {
     Optional<AuthenticationMethod> findByName(String name);
+    boolean existsByName(String name);
 }
