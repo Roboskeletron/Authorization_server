@@ -1,8 +1,7 @@
 package com.roboskeletron.authentication_server.domain;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.Set;
 
@@ -10,6 +9,9 @@ import java.util.Set;
 @Getter
 @Setter
 @Table(name = "clients")
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class Client {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -1,9 +1,8 @@
 package com.roboskeletron.authentication_server.security;
 
-import com.roboskeletron.authentication_server.domain.User;
 import com.roboskeletron.authentication_server.service.UserScopeService;
 import com.roboskeletron.authentication_server.service.UserService;
-import com.roboskeletron.authentication_server.util.UserBuilder;
+import com.roboskeletron.authentication_server.util.UserMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -18,18 +17,12 @@ public class JpaUserDetailsManager implements UserDetailsManager {
 
     @Override
     public void createUser(UserDetails user) {
-        UserBuilder userBuilder = new UserBuilder().fromUserDetails(user, userScopeService);
-
-        userService.createUser(userBuilder.build());
+        userService.createUser(UserMapper.fromUserDetails(user, userScopeService));
     }
 
     @Override
     public void updateUser(UserDetails user) {
-        User foundUser = userService.getUser(user.getUsername());
-
-        UserBuilder userBuilder = new UserBuilder(foundUser).fromUserDetails(user, userScopeService);
-
-        userService.updateUser(userBuilder.build());
+        userService.updateUser(UserMapper.fromUserDetails(user, userScopeService));
     }
 
     @Override

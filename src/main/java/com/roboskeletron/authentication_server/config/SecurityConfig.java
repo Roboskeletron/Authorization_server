@@ -2,12 +2,9 @@ package com.roboskeletron.authentication_server.config;
 
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
-import com.roboskeletron.authentication_server.domain.*;
 import com.roboskeletron.authentication_server.security.JpaRegisteredClientRepository;
 import com.roboskeletron.authentication_server.security.JpaUserDetailsManager;
 import com.roboskeletron.authentication_server.service.*;
-import com.roboskeletron.authentication_server.util.ClientBuilder;
-import com.roboskeletron.authentication_server.util.UserBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -91,20 +88,20 @@ public class SecurityConfig {
                 authorizationGrantTypeService,
                 redirectUrlService);
 
-        if (!clientService.doesClientExists("Client"))
-        {
-            AuthenticationMethod method = authenticationMethodService.getAuthMethod(1);
-            AuthorizationGrantType grantType = authorizationGrantTypeService.getGrantType(1);
-            RedirectUrl url = redirectUrlService.getRedirectUrl(1);
-
-            Client client = new ClientBuilder()
-                    .setClientId("Client")
-                    .setSecret("{bcrypt}$2y$10$aDkfe9wxeJg0yL19oXzOoeM1ibqxfImOv6ww7Euk0w//HaftfgAka")
-                    .setRedirectUrl(url)
-                    .setAuthenticationMethods(method)
-                    .setAuthorizationGrantTypes(grantType).build();
-            clientService.createClient(client);
-        }
+//        if (!clientService.doesClientExists("Client"))
+//        {
+//            AuthenticationMethod method = authenticationMethodService.getAuthMethod(1);
+//            AuthorizationGrantType grantType = authorizationGrantTypeService.getGrantType(1);
+//            RedirectUrl url = redirectUrlService.getRedirectUrl(1);
+//
+//            Client client = new ClientBuilder()
+//                    .setClientId("Client")
+//                    .setSecret("{bcrypt}$2y$10$aDkfe9wxeJg0yL19oXzOoeM1ibqxfImOv6ww7Euk0w//HaftfgAka")
+//                    .setRedirectUrl(url)
+//                    .setAuthenticationMethods(method)
+//                    .setAuthorizationGrantTypes(grantType).build();
+//            clientService.createClient(client);
+//        }
 
         return clientRepository;
     }
@@ -113,14 +110,14 @@ public class SecurityConfig {
     public UserDetailsService userDetailsService(){
         var detailsManager = new JpaUserDetailsManager(userService, userScopeService);
 
-        if (!userService.doesUserExists("User")){
-            User user = new UserBuilder()
-                    .setUsername("User")
-                    .setPassword("{bcrypt}$2y$10$smjI91vJ4TBUuI777c4zSOA8nKTR/jKrFOYgzKwB26q8NzrYaOq66")
-                    .setScopes(userScopeService.getUserScope(1))
-                    .build();
-            userService.createUser(user);
-        }
+//        if (!userService.doesUserExists("User")){
+//            User user = User.builder()
+//                    .username("User")
+//                    .password("{bcrypt}$2y$10$smjI91vJ4TBUuI777c4zSOA8nKTR/jKrFOYgzKwB26q8NzrYaOq66")
+//                    .scopes(userScopeService.getUserScope(1).)
+//                    .build();
+//            userService.createUser(user);
+//        }
 
         return detailsManager;
     }

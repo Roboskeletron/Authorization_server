@@ -1,15 +1,17 @@
 package com.roboskeletron.authentication_server.domain;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 
 @Entity
 @Getter
 @Setter
 @Table(name = "user_scopes")
-public class UserScope implements com.roboskeletron.authentication_server.util.Entity, GrantedAuthority {
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class UserScope implements GrantedAuthority {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;

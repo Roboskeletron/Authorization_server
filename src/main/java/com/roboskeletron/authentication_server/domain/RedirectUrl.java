@@ -1,13 +1,15 @@
 package com.roboskeletron.authentication_server.domain;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
 @Getter
 @Setter
 @Table(name = "redirect_urls")
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class RedirectUrl {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

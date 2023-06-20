@@ -1,14 +1,16 @@
 package com.roboskeletron.authentication_server.domain;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
 @Getter
 @Setter
 @Table(name = "authentication_methods")
-public class AuthenticationMethod implements com.roboskeletron.authentication_server.util.Entity {
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class AuthenticationMethod {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;

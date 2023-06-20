@@ -1,14 +1,16 @@
 package com.roboskeletron.authentication_server.domain;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
 @Getter
 @Setter
 @Table(name = "client_scopes")
-public class ClientScope implements com.roboskeletron.authentication_server.util.Entity {
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class ClientScope {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
