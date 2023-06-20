@@ -1,7 +1,7 @@
 package com.roboskeletron.authentication_server.repository;
 
 import com.roboskeletron.authentication_server.domain.User;
-import com.roboskeletron.authentication_server.domain.UserScope;
+import com.roboskeletron.authentication_server.domain.UserAuthority;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,9 +12,9 @@ import java.util.Collections;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 @DataJpaTest
-class UserScopeRepositoryTest {
+class UserAuthorityRepositoryTest {
     @Autowired
-    UserScopeRepository repository;
+    UserAuthorityRepository repository;
 
     @Autowired
     UserRepository userRepository;
@@ -28,7 +28,7 @@ class UserScopeRepositoryTest {
     void findByName() {
         String name = "scope";
 
-        UserScope expectedScope = new UserScope();
+        UserAuthority expectedScope = new UserAuthority();
         expectedScope.setName(name);
 
         repository.save(expectedScope);
@@ -44,13 +44,13 @@ class UserScopeRepositoryTest {
         User user = User.builder()
                 .username("user")
                 .password("password")
-                .scopes(Collections.emptySet())
+                .userAuthorities(Collections.emptySet())
                 .build();
 
         user = userRepository.save(user);
 
         String name = "user";
-        UserScope scope = UserScope.builder()
+        UserAuthority scope = UserAuthority.builder()
                 .name(name)
                 .user(user)
                 .build();

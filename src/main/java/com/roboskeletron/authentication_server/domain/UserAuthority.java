@@ -7,11 +7,11 @@ import org.springframework.security.core.GrantedAuthority;
 @Entity
 @Getter
 @Setter
-@Table(name = "user_scopes")
+@Table(name = "user_authorities")
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserScope implements GrantedAuthority {
+public class UserAuthority implements GrantedAuthority {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
