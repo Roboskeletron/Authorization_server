@@ -9,7 +9,7 @@ import java.util.Set;
 @Getter
 @Setter
 @Table(name = "clients")
-@Builder
+@Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
 public class Client {
