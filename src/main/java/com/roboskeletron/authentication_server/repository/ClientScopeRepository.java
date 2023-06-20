@@ -1,5 +1,6 @@
 package com.roboskeletron.authentication_server.repository;
 
+import com.roboskeletron.authentication_server.domain.Client;
 import com.roboskeletron.authentication_server.domain.ClientScope;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -10,4 +11,5 @@ import java.util.Optional;
 public interface ClientScopeRepository extends JpaRepository<ClientScope, Integer> {
     Optional<ClientScope> findByName(String name);
     boolean existsByName(String name);
+    Optional<ClientScope> findByNameAndClient(String name, Client client);
 }
