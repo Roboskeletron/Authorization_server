@@ -3,66 +3,128 @@ package com.roboskeletron.authentication_server.util;
 import com.roboskeletron.authentication_server.domain.AuthenticationMethod;
 import com.roboskeletron.authentication_server.domain.Client;
 import com.roboskeletron.authentication_server.domain.ClientScope;
-import com.roboskeletron.authentication_server.service.AuthenticationMethodService;
-import com.roboskeletron.authentication_server.service.AuthorizationGrantTypeService;
-import com.roboskeletron.authentication_server.service.ClientScopeService;
-import com.roboskeletron.authentication_server.service.RedirectUrlService;
-import lombok.RequiredArgsConstructor;
+import com.roboskeletron.authentication_server.domain.RedirectUrl;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 
-import java.util.Set;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
+import java.util.function.Function;
 
-@RequiredArgsConstructor
 public class ClientMapper {
-    private final ClientScopeService clientScopeService;
-    private final AuthenticationMethodService authenticationMethodService;
-    private final AuthorizationGrantTypeService authorizationGrantTypeService;
-    private final RedirectUrlService redirectUrlService;
+    private static final Function<String, ClientScope> defaultScopeFunc = scope -> ClientScope.builder().name(scope).build();
+
+    private static final Function<String, AuthenticationMethod> defaultAuthMethodFunc = method ->
+            AuthenticationMethod.builder().name(method).build();
+
+    private static final Function<String, com.roboskeletron.authentication_server.domain.AuthorizationGrantType> defaultGrantTypeFunc =
+            method -> com.roboskeletron.authentication_server.domain.AuthorizationGrantType
+                    .builder().name(method).build();
+
+    private static final Function<String, RedirectUrl> defaultRedirectUrlFunc = url -> RedirectUrl.builder().url(url).build();
+
+    private static Function<String, ClientScope> scopeFunc = defaultScopeFunc;
+    private static Function<String, AuthenticationMethod> authMethodFunc = defaultAuthMethodFunc;
+    private static Function<String, com.roboskeletron.authentication_server.domain.AuthorizationGrantType> grantTypeFunc = defaultGrantTypeFunc;
+    private static Function<String, RedirectUrl> redirectUrlFunc =defaultRedirectUrlFunc;
 
     public static RegisteredClient mapToRegisteredClient(Client client){
-        Consumer<Set<String>> scopes = strings -> strings.addAll(client.getScopes().stream()
-                .map(ClientScope::getName).collect(Collectors.toSet()));
+        SetMapper.ActionType actionType = SetMapper.ActionType.ADD;
 
-        Consumer<Set<AuthorizationGrantType>> grantTypes = authorizationGrantTypes ->
-                authorizationGrantTypes.addAll(client.getAuthorizationGrantTypes().
-                        stream().map(com.roboskeletron.authentication_server
-                                .domain.AuthorizationGrantType::getName)
-                        .map(AuthorizationGrantType::new).collect(Collectors.toSet()));
+        var scopeConsumer = SetMapper.getSetStringConsumer(actionType, ClientScope::getName, String::toString, client.getScopes());
 
-        Consumer<Set<ClientAuthenticationMethod>> authMethods = clientAuthenticationMethods ->
-                clientAuthenticationMethods.addAll(client.getAuthenticationMethods().stream()
-                        .map(AuthenticationMethod::getName).map(ClientAuthenticationMethod::new)
-                        .collect(Collectors.toSet()));
+        var grantTypesConsumer = SetMapper.getSetStringConsumer(actionType, com.roboskeletron.authentication_server.domain
+                .AuthorizationGrantType::getName, AuthorizationGrantType::new, client.getAuthorizationGrantTypes());
+
+        var authMethodsConsumer = SetMapper.getSetStringConsumer(actionType, AuthenticationMethod::getName, ClientAuthenticationMethod::new,
+                client.getAuthenticationMethods());
+
+       var redirectUrlsConsumer = SetMapper.getSetStringConsumer(actionType, RedirectUrl::getUrl, String::toString, client.getRedirectUrls());
 
         return RegisteredClient.
                 withId(client.getId().toString())
                 .clientSecret(client.getClientSecret())
                 .clientId(client.getClientId())
-                .scopes(scopes)
-                .authorizationGrantTypes(grantTypes)
-                .clientAuthenticationMethods(authMethods)
+                .scopes(scopeConsumer)
+                .authorizationGrantTypes(grantTypesConsumer)
+                .clientAuthenticationMethods(authMethodsConsumer)
+                .redirectUris(redirectUrlsConsumer)
                 .build();
     }
 
-    public Client mapToClient(RegisteredClient registeredClient){
-        return Client.builder()
+    public static Client mapToClient(RegisteredClient registeredClient){
+        var client = Client.builder()
                 .id(Integer.parseInt(registeredClient.getId()))
                 .clientId(registeredClient.getClientId())
                 .clientSecret(registeredClient.getClientSecret())
-                .scopes(registeredClient.getScopes().stream().map(clientScopeService::getClientScope).
-                        collect(Collectors.toSet()))
-                .authenticationMethods(registeredClient.getClientAuthenticationMethods()
-                        .stream().map(ClientAuthenticationMethod::getValue)
-                        .map(authenticationMethodService::getAuthMethod).collect(Collectors.toSet()))
-                .authorizationGrantTypes(registeredClient.getAuthorizationGrantTypes().stream()
-                        .map(AuthorizationGrantType::getValue).map(authorizationGrantTypeService::getGrantType)
-                        .collect(Collectors.toSet()))
-                .redirectUrls(registeredClient.getRedirectUris().stream().map(redirectUrlService::getRedirectUrl)
-                        .collect(Collectors.toSet()))
                 .build();
+
+        var scopes = SetMapper.mapObjectToSet(String::toString, scopeFunc, registeredClient.getScopes());
+        scopes.forEach(clientScope -> clientScope.setClient(client));
+
+        var authMethods = SetMapper.mapObjectToSet(ClientAuthenticationMethod::getValue, authMethodFunc,
+                registeredClient.getClientAuthenticationMethods());
+        authMethods.forEach(authenticationMethod -> authenticationMethod.setClient(client));
+
+        var authGrantTypes = SetMapper.mapObjectToSet(AuthorizationGrantType::getValue, grantTypeFunc,
+                registeredClient.getAuthorizationGrantTypes());
+        authGrantTypes.forEach(authorizationGrantType -> authorizationGrantType.setClient(client));
+
+        var redirectUrls = SetMapper.mapObjectToSet(String::toString, redirectUrlFunc, registeredClient.getRedirectUris());
+        redirectUrls.forEach(redirectUrl -> redirectUrl.setClient(client));
+
+        return  client.toBuilder()
+                .scopes(scopes)
+                .authenticationMethods(authMethods)
+                .authorizationGrantTypes(authGrantTypes)
+                .redirectUrls(redirectUrls)
+                .build();
+    }
+
+    public static Function<String, ClientScope> getDefaultScopeFunc() {
+        return defaultScopeFunc;
+    }
+
+    public static Function<String, AuthenticationMethod> getDefaultAuthMethodFunc() {
+        return defaultAuthMethodFunc;
+    }
+
+    public static Function<String, com.roboskeletron.authentication_server.domain.AuthorizationGrantType> getDefaultGrantTypeFunc() {
+        return defaultGrantTypeFunc;
+    }
+
+    public static Function<String, RedirectUrl> getDefaultRedirectUrlFunc() {
+        return defaultRedirectUrlFunc;
+    }
+
+    public static Function<String, ClientScope> getScopeFunc() {
+        return scopeFunc;
+    }
+
+    public static void setScopeFunc(Function<String, ClientScope> scopeFunc) {
+        ClientMapper.scopeFunc = scopeFunc;
+    }
+
+    public static Function<String, AuthenticationMethod> getAuthMethodFunc() {
+        return authMethodFunc;
+    }
+
+    public static void setAuthMethodFunc(Function<String, AuthenticationMethod> authMethodFunc) {
+        ClientMapper.authMethodFunc = authMethodFunc;
+    }
+
+    public static Function<String, com.roboskeletron.authentication_server.domain.AuthorizationGrantType> getGrantTypeFunc() {
+        return grantTypeFunc;
+    }
+
+    public static void setGrantTypeFunc(Function<String, com.roboskeletron.authentication_server.domain.AuthorizationGrantType> grantTypeFunc) {
+        ClientMapper.grantTypeFunc = grantTypeFunc;
+    }
+
+    public static Function<String, RedirectUrl> getRedirectUrlFunc() {
+        return redirectUrlFunc;
+    }
+
+    public static void setRedirectUrlFunc(Function<String, RedirectUrl> redirectUrlFunc) {
+        ClientMapper.redirectUrlFunc = redirectUrlFunc;
     }
 }
