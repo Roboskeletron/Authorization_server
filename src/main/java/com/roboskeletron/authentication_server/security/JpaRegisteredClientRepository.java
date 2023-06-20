@@ -12,20 +12,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class JpaRegisteredClientRepository implements RegisteredClientRepository {
     private final ClientService clientService;
-    private final ClientScopeService clientScopeService;
-    private final AuthenticationMethodService authenticationMethodService;
-    private final AuthorizationGrantTypeService authorizationGrantTypeService;
-    private final RedirectUrlService redirectUrlService;
     @Override
     public void save(RegisteredClient registeredClient) {
-        ClientMapper mapper = new ClientMapper(
-                clientScopeService,
-                authenticationMethodService,
-                authorizationGrantTypeService,
-                redirectUrlService
-        );
-
-        clientService.createClient(mapper.mapToClient(registeredClient));
+        clientService.createClient(ClientMapper.mapToClient(registeredClient));
     }
 
     @Override
