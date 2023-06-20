@@ -1,6 +1,7 @@
 package com.roboskeletron.authentication_server.service;
 
 import com.roboskeletron.authentication_server.domain.Client;
+import com.roboskeletron.authentication_server.domain.ClientScope;
 import com.roboskeletron.authentication_server.repository.ClientRepository;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
@@ -12,11 +13,11 @@ import org.springframework.stereotype.Service;
 public class ClientService {
     private final ClientRepository clientRepository;
 
-    public void createClient(Client client){
+    public Client createClient(Client client){
         if (clientRepository.existsByClientId(client.getClientId()))
             throw new EntityExistsException("name " + client.getClientId() + " has been taken");
 
-        clientRepository.save(client);
+        return clientRepository.save(client);
     }
 
     public Client updateClient(Client client){
@@ -54,5 +55,11 @@ public class ClientService {
 
     public boolean doesClientExists(int id){
         return clientRepository.existsById(id);
+    }
+
+    public  Client grantScope(Client client, ClientScope scope){
+        scope.setClient(client);
+        client.getScopes().add(scope);
+        return  updateClient(client);
     }
 }
