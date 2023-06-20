@@ -8,10 +8,13 @@ import lombok.Setter;
 @Getter
 @Setter
 @Table(name = "client_scopes")
-public class ClientScope {
+public class ClientScope implements com.roboskeletron.authentication_server.util.Entity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     private String name;
+
+    @ManyToOne
+    private Client client;
 }

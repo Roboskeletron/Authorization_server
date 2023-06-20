@@ -1,7 +1,6 @@
 package com.roboskeletron.authentication_server.repository;
 
 import com.roboskeletron.authentication_server.domain.Client;
-import com.roboskeletron.authentication_server.domain.User;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +9,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import java.util.Collections;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
 class ClientRepositoryTest {
@@ -32,7 +30,7 @@ class ClientRepositoryTest {
         expectedClient.setClientSecret("");
         expectedClient.setAuthenticationMethods(Collections.emptySet());
         expectedClient.setAuthorizationGrantTypes(Collections.emptySet());
-        expectedClient.setRedirectUri("");
+        expectedClient.setRedirectUrls(Collections.emptySet());
         expectedClient.setScopes(Collections.emptySet());
 
         repository.save(expectedClient);

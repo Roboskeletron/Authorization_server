@@ -21,15 +21,15 @@ public class Client {
     @Column(name = "secret")
     private String clientSecret;
 
-    @Column(name = "redirect_uri")
-    private String redirectUri;
+    @OneToMany(mappedBy = "client", fetch = FetchType.EAGER)
+    private Set<RedirectUrl> redirectUrls;
 
-    @ManyToMany
+    @OneToMany(mappedBy = "client", fetch = FetchType.EAGER)
     private Set<ClientScope> scopes;
 
-    @ManyToMany
+    @OneToMany(mappedBy = "client", fetch = FetchType.EAGER)
     private Set<AuthenticationMethod> authenticationMethods;
 
-    @ManyToMany
+    @OneToMany(mappedBy = "client", fetch = FetchType.EAGER)
     private Set<AuthorizationGrantType> authorizationGrantTypes;
 }

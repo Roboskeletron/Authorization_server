@@ -7,13 +7,13 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-@Table(name = "authentication_methods")
-public class AuthenticationMethod implements com.roboskeletron.authentication_server.util.Entity {
+@Table(name = "redirect_urls")
+public class RedirectUrl {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    private String name;
+    private String url;
 
     @ManyToOne
     private Client client;
