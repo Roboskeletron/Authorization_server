@@ -16,3 +16,7 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQL10Dialect
     hibernate:
       ddl-auto: validate
+  security:
+    user:
+      name: root
+      password: suP@ssw0rd
