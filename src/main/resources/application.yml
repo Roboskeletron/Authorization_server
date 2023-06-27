@@ -20,3 +20,4 @@ spring:
     user:
       name: root
       password: suP@ssw0rd
+      authorities: super_user
