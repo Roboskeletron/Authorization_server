@@ -27,6 +27,7 @@ class UserRepositoryTest {
         User expextedUser = new User();
         expextedUser.setUsername(name);
         expextedUser.setPassword("random");
+        expextedUser.setScopes(Collections.emptySet());
 
         repository.save(expextedUser);
 
