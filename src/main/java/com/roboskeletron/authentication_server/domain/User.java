@@ -26,9 +26,12 @@ public class User implements UserDetails {
 
     private String password;
 
+    @OneToMany(mappedBy = "user",fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    private Set<UserScope> scopes;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.emptySet();
+        return scopes;
     }
 
     @Override
