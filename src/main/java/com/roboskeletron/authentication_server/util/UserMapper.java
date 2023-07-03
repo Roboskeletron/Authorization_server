@@ -6,6 +6,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Function;
 
 public class UserMapper {
@@ -21,6 +22,13 @@ public class UserMapper {
                 .userAuthorities(SetMapper.mapObjectToSet(GrantedAuthority::getAuthority, authorityFunc,
                         new HashSet<>(userDetails.getAuthorities())))
                 .build();
+    }
+
+    public static Set<String> getAuthoritiesAsSet(User user){
+        var authorities = user.getUserAuthorities();
+
+        return SetMapper.mapObjectToSet(UserAuthority::getAuthority, String::toString,
+                authorities);
     }
 
     public static Function<String, UserAuthority> getAuthorityFunc() {
