@@ -6,6 +6,8 @@ import com.roboskeletron.authentication_server.repository.UserRepository;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -16,7 +18,7 @@ public class UserService {
     public User createUser(User user){
         if (userRepository.existsByUsername(user.getUsername()))
             throw new EntityExistsException("name " + user.getUsername() + " has been taken");
-
+        //TODO fix user creation: check that user authorities has link to user
         return userRepository.save(user);
     }
 
@@ -42,11 +44,13 @@ public class UserService {
     }
 
     public User getUser(int id){
-        return userRepository.findById(id).orElseThrow(EntityNotFoundException::new);
+        return userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
     }
 
     public User getUser(String username){
-        return userRepository.findByUsername(username).orElseThrow(EntityNotFoundException::new);
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
     }
 
     public boolean doesUserExists(String username){
@@ -61,5 +65,9 @@ public class UserService {
         authority.setUser(user);
         user.getUserAuthorities().add(authority);
         return updateUser(user);
+    }
+
+    public Page<User> getAllUsers(Pageable pageable){
+        return userRepository.findAll(pageable);
     }
 }
