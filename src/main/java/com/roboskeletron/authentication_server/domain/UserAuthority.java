@@ -1,5 +1,7 @@
 package com.roboskeletron.authentication_server.domain;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -19,9 +21,11 @@ public class UserAuthority implements GrantedAuthority {
     private String name;
 
     @ManyToOne
+    @JsonIgnore
     private User user;
 
     @Override
+    @JsonIgnore
     public String getAuthority() {
         return name;
     }
