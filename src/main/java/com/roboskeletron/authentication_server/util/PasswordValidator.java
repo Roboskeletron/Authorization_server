@@ -21,4 +21,8 @@ public class PasswordValidator {
     private void readConfig(String regex){
         PasswordValidator.passwordPattern = regex;
     }
+
+    public static String getPasswordPattern() {
+        return passwordPattern;
+    }
 }
