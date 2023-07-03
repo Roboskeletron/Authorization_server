@@ -13,9 +13,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.crypto.keygen.KeyGenerators;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
@@ -59,7 +61,8 @@ public class UserController {
     @PreAuthorize("hasAnyAuthority('super_user', 'admin')")
     public ResponseEntity<User> createUser(@RequestParam("username") String username,
                                            @RequestParam("password") String password,
-                                           @RequestParam("authorities") Set<String> authorities){
+                                           @RequestParam("authorities") Set<String> authorities,
+                                           @AuthenticationPrincipal Jwt jwt){
 
         if (!PasswordValidator.isPasswordValid(password))
             throw new InvalidPasswordException();
@@ -73,12 +76,14 @@ public class UserController {
                         authorities
                 )).build();
 
-        user = userService.createUser(user);
+        User agent = userService.getUser(jwt.getSubject());
 
-        return ResponseEntity.ok(user);
+        validateAuthorities(agent, user);
+
+        return ResponseEntity.ok(userService.createUser(user));
     }
 
-    @PostMapping("/change_password")
+    @PostMapping("/password/change")
     public ResponseEntity<User> changePassword(@AuthenticationPrincipal Jwt jwt,
                                            @RequestParam("password") String password,
                                            @RequestParam("new_password") String new_password){
@@ -122,7 +127,38 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
-    private void deleteUser(User agent, User target){
+    @PostMapping("/password/reset")
+    @PreAuthorize("hasAnyAuthority('super_user', 'admin')")
+    public ResponseEntity<User> resetPassword(@RequestParam("username") String username,
+                                              @AuthenticationPrincipal Jwt jwt){
+        User admin = userService.getUser(jwt.getSubject());
+        User user = userService.getUser(username);
 
+        return null;
+    }
+
+    @PostMapping("/password/reset")
+    @PreAuthorize("hasAnyAuthority('super_user', 'admin')")
+    public ResponseEntity<User> resetPassword(@RequestParam("id") int id,
+                                              @AuthenticationPrincipal Jwt jwt){
+        User admin = userService.getUser(jwt.getSubject());
+        User user = userService.getUser(id);
+    }
+
+    private void deleteUser(User agent, User target){
+        validateAuthorities(agent, target);
+
+        userService.deleteUser(target);
+    }
+
+    private void validateAuthorities(User agent, User target){
+        var agentAuthorities = UserMapper.getAuthoritiesAsSet(agent);
+        var targetAuthorities = UserMapper.getAuthoritiesAsSet(target);
+
+        if (targetAuthorities.contains("super_user"))
+            throw new AccessDeniedException("Cant apply this action to super_user");
+
+        if (!agentAuthorities.contains("super_user") && targetAuthorities.contains("admin"))
+            throw new AccessDeniedException("Only super_user can apply actions to admin");
     }
 }
