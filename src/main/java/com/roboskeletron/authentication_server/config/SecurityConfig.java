@@ -10,8 +10,8 @@ import com.roboskeletron.authentication_server.security.JpaRegisteredClientRepos
 import com.roboskeletron.authentication_server.security.JpaUserDetailsManager;
 import com.roboskeletron.authentication_server.service.ClientService;
 import com.roboskeletron.authentication_server.service.UserService;
-import com.roboskeletron.authentication_server.util.JwtAuthoritiesConverter;
-import com.roboskeletron.authentication_server.util.JwtSubjectConverter;
+import com.roboskeletron.authentication_server.security.JwtAuthoritiesConverter;
+import com.roboskeletron.authentication_server.security.JwtSubjectConverter;
 import com.roboskeletron.authentication_server.util.SetMapper;
 import com.roboskeletron.authentication_server.util.UserMapper;
 import lombok.RequiredArgsConstructor;
