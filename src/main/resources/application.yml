@@ -21,3 +21,15 @@ spring:
       name: root
       password: suP@ssw0rd
       authorities: super_user
+    password:
+      regex: ^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@#$%^&+=!]).{8,20}$
+      error-message: |-
+        The password must meet the following criteria:
+
+          - It should contain at least one lowercase letter.
+          - It should contain at least one uppercase letter.
+          - It should contain at least one digit.
+          - It should contain at least one special character: @#$%^&+=!
+          - It should have a minimum length of 8 characters and a maximum length of 20 characters.
+
+        Please make sure your password fulfills these requirements.
