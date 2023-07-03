@@ -1,4 +1,4 @@
-package com.roboskeletron.authentication_server.util;
+package com.roboskeletron.authentication_server.security;
 
 import lombok.Getter;
 import org.springframework.core.convert.converter.Converter;

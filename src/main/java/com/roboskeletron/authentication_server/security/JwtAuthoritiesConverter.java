@@ -1,8 +1,9 @@
-package com.roboskeletron.authentication_server.util;
+package com.roboskeletron.authentication_server.security;
 
 import com.roboskeletron.authentication_server.domain.User;
 import com.roboskeletron.authentication_server.domain.UserAuthority;
 import com.roboskeletron.authentication_server.service.UserService;
+import com.roboskeletron.authentication_server.util.SetMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.convert.converter.Converter;
