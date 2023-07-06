@@ -2,26 +2,41 @@ package com.roboskeletron.authentication_server.service;
 
 import com.roboskeletron.authentication_server.domain.User;
 import com.roboskeletron.authentication_server.domain.UserAuthority;
+import com.roboskeletron.authentication_server.repository.UserAuthorityRepository;
 import com.roboskeletron.authentication_server.repository.UserRepository;
+import com.roboskeletron.authentication_server.util.SetMapper;
+import com.roboskeletron.authentication_server.util.UserMapper;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
+    private final UserAuthorityRepository authorityRepository;
 
     public User createUser(User user){
         if (userRepository.existsByUsername(user.getUsername()))
             throw new EntityExistsException("name " + user.getUsername() + " has been taken");
-        //TODO fix user creation: check that user authorities has link to user
-        return userRepository.save(user);
-    }
+        Set<UserAuthority> authorities = new HashSet<>(user.getUserAuthorities());
+        user.getUserAuthorities().clear();
 
+        User savedUser = userRepository.save(user);
+
+        authorities.forEach(authority -> grantAuthority(savedUser, authority));
+
+        return updateUser(savedUser);
+    }
     public User updateUser(User user){
         if (!userRepository.existsById(user.getId()))
             throw new EntityNotFoundException("user not found");
@@ -61,10 +76,16 @@ public class UserService {
         return userRepository.existsById(id);
     }
 
-    public User grantAuthority(User user, UserAuthority authority){
+    public void grantAuthority(User user, UserAuthority authority){
         authority.setUser(user);
         user.getUserAuthorities().add(authority);
-        return updateUser(user);
+    }
+
+    public void revokeAuthority(User user, String authority){
+        var authorities = user.getUserAuthorities().stream().filter(userAuthority ->
+                userAuthority.getName().equals(authority)).collect(Collectors.toSet());
+        user.getUserAuthorities().removeAll(authorities);
+        authorityRepository.deleteAll(authorities);
     }
 
     public Page<User> getAllUsers(Pageable pageable){
