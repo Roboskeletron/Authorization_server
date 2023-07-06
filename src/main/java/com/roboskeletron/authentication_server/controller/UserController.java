@@ -1,10 +1,13 @@
 package com.roboskeletron.authentication_server.controller;
 
 import com.roboskeletron.authentication_server.domain.User;
+import com.roboskeletron.authentication_server.dto.UserDTO;
 import com.roboskeletron.authentication_server.exception.InvalidPasswordException;
+import com.roboskeletron.authentication_server.exception.ParameterRequiredException;
 import com.roboskeletron.authentication_server.exception.SamePasswordException;
+import com.roboskeletron.authentication_server.security.PasswordGenerator;
 import com.roboskeletron.authentication_server.service.UserService;
-import com.roboskeletron.authentication_server.util.PasswordValidator;
+import com.roboskeletron.authentication_server.security.PasswordValidator;
 import com.roboskeletron.authentication_server.util.SetMapper;
 import com.roboskeletron.authentication_server.util.UserMapper;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +20,6 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.crypto.keygen.KeyGenerators;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
@@ -46,9 +48,9 @@ public class UserController {
 
     @GetMapping("/page")
     @PreAuthorize("hasAnyAuthority('super_user', 'admin')")
-    public ResponseEntity<Page<User>> getUsers(@RequestParam("pageIndex") int pageIndex,
-                                               @RequestParam("pageSize") int pageSize,
-                                               @RequestParam("sortBy") String sortBy){
+    public ResponseEntity<Page<User>> getUsers(@RequestParam int pageIndex,
+                                               @RequestParam int pageSize,
+                                               @RequestParam(required = false) String sortBy){
         sortBy = sortBy == null ? "id" : sortBy;
 
         Pageable pageable = PageRequest.of(pageIndex, pageSize, Sort.by(sortBy));
@@ -59,28 +61,18 @@ public class UserController {
 
     @PutMapping("/create")
     @PreAuthorize("hasAnyAuthority('super_user', 'admin')")
-    public ResponseEntity<User> createUser(@RequestParam("username") String username,
-                                           @RequestParam("password") String password,
-                                           @RequestParam("authorities") Set<String> authorities,
+    public ResponseEntity<UserDTO> createUser(@RequestParam String username,
+                                           @RequestParam(required = false) String password,
+                                           @RequestParam Set<String> authorities,
                                            @AuthenticationPrincipal Jwt jwt){
-
-        if (!PasswordValidator.isPasswordValid(password))
+        if (password == null)
+            password = generatePassword();
+        else if (!PasswordValidator.isPasswordValid(password))
             throw new InvalidPasswordException();
 
-        User user = User.builder()
-                .username(username)
-                .password(passwordEncoder.encode(password))
-                .userAuthorities(SetMapper.mapObjectToSet(
-                        String::toString,
-                        UserMapper.getAuthorityFunc(),
-                        authorities
-                )).build();
+        User user = createUser(username, authorities, jwt, password);
 
-        User agent = userService.getUser(jwt.getSubject());
-
-        validateAuthorities(agent, user);
-
-        return ResponseEntity.ok(userService.createUser(user));
+        return ResponseEntity.ok(new UserDTO(user, password));
     }
 
     @PostMapping("/password/change")
@@ -106,59 +98,75 @@ public class UserController {
 
     @DeleteMapping("/delete")
     @PreAuthorize("hasAnyAuthority('super_user', 'admin')")
-    public ResponseEntity<User> deleteUser(@RequestParam("id") int id, @AuthenticationPrincipal Jwt jwt){
-        User admin = userService.getUser(jwt.getSubject());
-        User user = userService.getUser(id);
-
-        deleteUser(admin, user);
-
-        return ResponseEntity.ok(user);
-    }
-
-    @DeleteMapping("/delete")
-    @PreAuthorize("hasAnyAuthority('super_user', 'admin')")
-    public ResponseEntity<User> deleteUser(@RequestParam("username") String username,
+    public ResponseEntity<User> deleteUser(@RequestParam(required = false) Integer id,
+                                           @RequestParam(required = false) String username,
                                            @AuthenticationPrincipal Jwt jwt){
-        User admin = userService.getUser(jwt.getSubject());
-        User user = userService.getUser(username);
+        User target = getTarget(id, username);
 
-        deleteUser(admin, user);
-
-        return ResponseEntity.ok(user);
-    }
-
-    @PostMapping("/password/reset")
-    @PreAuthorize("hasAnyAuthority('super_user', 'admin')")
-    public ResponseEntity<User> resetPassword(@RequestParam("username") String username,
-                                              @AuthenticationPrincipal Jwt jwt){
-        User admin = userService.getUser(jwt.getSubject());
-        User user = userService.getUser(username);
-
-        return null;
-    }
-
-    @PostMapping("/password/reset")
-    @PreAuthorize("hasAnyAuthority('super_user', 'admin')")
-    public ResponseEntity<User> resetPassword(@RequestParam("id") int id,
-                                              @AuthenticationPrincipal Jwt jwt){
-        User admin = userService.getUser(jwt.getSubject());
-        User user = userService.getUser(id);
-    }
-
-    private void deleteUser(User agent, User target){
-        validateAuthorities(agent, target);
-
+        validateAuthorities(jwt, target);
         userService.deleteUser(target);
+
+        return ResponseEntity.ok(target);
     }
 
-    private void validateAuthorities(User agent, User target){
-        var agentAuthorities = UserMapper.getAuthoritiesAsSet(agent);
+    @PostMapping("/password/reset")
+    @PreAuthorize("hasAnyAuthority('super_user', 'admin')")
+    public ResponseEntity<String> resetPassword(@RequestParam(required = false) Integer id,
+                                                @RequestParam(required = false) String username,
+                                                             @AuthenticationPrincipal Jwt jwt){
+        User target = getTarget(id, username);
+
+        validateAuthorities(jwt, target);
+
+        String password = generatePassword();
+        target.setPassword(passwordEncoder.encode(password));
+
+        return ResponseEntity.ok(password);
+    }
+
+    private User createUser(String username, Set<String> authorities, Jwt jwt, String password) {
+        User user = User.builder()
+                .username(username)
+                .password(passwordEncoder.encode(password))
+                .userAuthorities(SetMapper.mapObjectToSet(
+                        String::toString,
+                        UserMapper.getAuthorityFunc(),
+                        authorities
+                )).build();
+
+        validateAuthorities(jwt, user);
+
+        return user;
+    }
+
+    private void validateAuthorities(Jwt agent, User target){
         var targetAuthorities = UserMapper.getAuthoritiesAsSet(target);
 
         if (targetAuthorities.contains("super_user"))
             throw new AccessDeniedException("Cant apply this action to super_user");
 
-        if (!agentAuthorities.contains("super_user") && targetAuthorities.contains("admin"))
+        if (!agent.hasClaim("super_user") && targetAuthorities.contains("admin"))
             throw new AccessDeniedException("Only super_user can apply actions to admin");
+    }
+
+    private String generatePassword(){
+        PasswordGenerator passwordGenerator =
+                new PasswordGenerator(PasswordValidator.getPasswordPattern());
+
+        String password = passwordGenerator.generate();
+
+        if (!PasswordValidator.isPasswordValid(password))
+            throw new InvalidPasswordException();
+
+        return password;
+    }
+
+    private User getTarget(Integer id, String username){
+        if (id != null)
+            return userService.getUser(id);
+        else if (username != null)
+            return userService.getUser(username);
+
+        throw new ParameterRequiredException("Require id or username");
     }
 }
