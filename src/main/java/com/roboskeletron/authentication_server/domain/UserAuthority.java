@@ -29,4 +29,10 @@ public class UserAuthority implements GrantedAuthority {
     public String getAuthority() {
         return name;
     }
+
+    @Override
+    @JsonIgnore
+    public int hashCode() {
+        return name.hashCode();
+    }
 }
