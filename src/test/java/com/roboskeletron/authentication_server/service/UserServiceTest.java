@@ -8,6 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -29,7 +30,7 @@ class UserServiceTest {
         userRepository.deleteAll();
         scopeRepository.deleteAll();
 
-        service = new UserService(userRepository);
+        service = new UserService(userRepository, scopeRepository);
     }
 
     @Test
@@ -68,7 +69,9 @@ class UserServiceTest {
         user = service.createUser(user);
 
         String scope = "User";
-        user = service.grantAuthority(user, UserAuthority.builder().name(scope).build());
+        service.grantAuthority(user, UserAuthority.builder().name(scope).build());
+
+        user = service.updateUser(user);
 
         assertThat(user.getUserAuthorities().stream().map(UserAuthority::getName).collect(Collectors.toSet())
                 .contains(scope)).isTrue();
