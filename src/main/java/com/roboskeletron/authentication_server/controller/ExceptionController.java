@@ -2,6 +2,7 @@ package com.roboskeletron.authentication_server.controller;
 
 import com.roboskeletron.authentication_server.exception.ErrorResponse;
 import com.roboskeletron.authentication_server.exception.InvalidPasswordException;
+import com.roboskeletron.authentication_server.exception.ParameterRequiredException;
 import com.roboskeletron.authentication_server.exception.SamePasswordException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +21,7 @@ public class ExceptionController {
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler(InvalidPasswordException.class)
+    @ExceptionHandler({InvalidPasswordException.class, ParameterRequiredException.class})
     public ResponseEntity<ErrorResponse> invalidPassword(InvalidPasswordException exception){
         ErrorResponse errorResponse = createErrorResponse(exception);
 
