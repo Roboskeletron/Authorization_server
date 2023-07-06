@@ -1,4 +1,4 @@
-package com.roboskeletron.authentication_server.util;
+package com.roboskeletron.authentication_server.security;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
