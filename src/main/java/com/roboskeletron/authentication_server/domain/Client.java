@@ -1,5 +1,7 @@
 package com.roboskeletron.authentication_server.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -21,17 +23,22 @@ public class Client {
     private String clientId;
 
     @Column(name = "secret")
+    @JsonIgnore
     private String clientSecret;
 
     @OneToMany(mappedBy = "client", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JsonManagedReference
     private Set<RedirectUrl> redirectUrls;
 
     @OneToMany(mappedBy = "client", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JsonManagedReference
     private Set<ClientScope> scopes;
 
     @OneToMany(mappedBy = "client", fetch = FetchType.EAGER,  cascade = CascadeType.ALL)
+    @JsonManagedReference
     private Set<AuthenticationMethod> authenticationMethods;
 
     @OneToMany(mappedBy = "client", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JsonManagedReference
     private Set<AuthorizationGrantType> authorizationGrantTypes;
 }
