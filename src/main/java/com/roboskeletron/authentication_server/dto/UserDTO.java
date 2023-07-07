@@ -1,14 +1,12 @@
 package com.roboskeletron.authentication_server.dto;
 
 import com.roboskeletron.authentication_server.domain.User;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 @Data
-@RequiredArgsConstructor
-@Getter
+@AllArgsConstructor
 public class UserDTO {
-    private final User user;
-    private final String password;
+    private User user;
+    private String password;
 }
