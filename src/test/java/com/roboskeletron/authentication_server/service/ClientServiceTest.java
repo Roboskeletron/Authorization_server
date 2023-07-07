@@ -2,8 +2,7 @@ package com.roboskeletron.authentication_server.service;
 
 import com.roboskeletron.authentication_server.domain.Client;
 import com.roboskeletron.authentication_server.domain.ClientScope;
-import com.roboskeletron.authentication_server.repository.ClientRepository;
-import com.roboskeletron.authentication_server.repository.ClientScopeRepository;
+import com.roboskeletron.authentication_server.repository.*;
 import com.roboskeletron.authentication_server.util.ClientMapper;
 import com.roboskeletron.authentication_server.util.SetMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,13 +20,23 @@ class ClientServiceTest {
     private ClientRepository clientRepository;
     @Autowired
     private ClientScopeRepository scopeRepository;
+    @Autowired
+    private AuthenticationMethodRepository authenticationMethodRepository;
+    @Autowired
+    private AuthorizationGrantTypeRepository authorizationGrantTypeRepository;
+    @Autowired
+    private RedirectUrlRepository redirectUrlRepository;
     private ClientService service;
 
     @BeforeEach
     void setUp() {
         clientRepository.deleteAll();
         scopeRepository.deleteAll();
-        service = new ClientService(clientRepository);
+        service = new ClientService(clientRepository,
+                scopeRepository,
+                authenticationMethodRepository,
+                authorizationGrantTypeRepository,
+                redirectUrlRepository);
     }
 
     @Test
@@ -66,7 +75,9 @@ class ClientServiceTest {
         client = service.createClient(client);
 
         String scopeName = "openid";
-        client = service.grantScope(client, ClientScope.builder().name(scopeName).build());
+        service.grantProperty(client, ClientScope.builder().name(scopeName).build());
+
+        client = service.updateClient(client);
 
         assertThat(client.getScopes().stream().map(ClientScope::getName).collect(Collectors.toSet())
                 .contains(scopeName)).isTrue();

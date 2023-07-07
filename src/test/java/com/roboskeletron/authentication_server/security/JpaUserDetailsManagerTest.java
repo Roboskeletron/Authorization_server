@@ -26,7 +26,7 @@ class JpaUserDetailsManagerTest {
         userRepository.deleteAll();
         userAuthorityRepository.deleteAll();
 
-        userDetailsManager = new JpaUserDetailsManager(new UserService(userRepository));
+        userDetailsManager = new JpaUserDetailsManager(new UserService(userRepository, userAuthorityRepository));
     }
 
     @Test
