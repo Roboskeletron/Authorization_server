@@ -35,4 +35,13 @@ public class UserAuthority implements GrantedAuthority {
     public int hashCode() {
         return name.hashCode();
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj.getClass() != UserAuthority.class)
+            return false;
+
+        UserAuthority authority = (UserAuthority) obj;
+        return name.equals(authority.getName());
+    }
 }
