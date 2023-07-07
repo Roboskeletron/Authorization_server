@@ -1,5 +1,6 @@
 package com.roboskeletron.authentication_server.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -10,7 +11,7 @@ import lombok.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ClientScope {
+public class ClientScope implements ClientProperty {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -18,5 +19,6 @@ public class ClientScope {
     private String name;
 
     @ManyToOne
+    @JsonIgnore
     private Client client;
 }
