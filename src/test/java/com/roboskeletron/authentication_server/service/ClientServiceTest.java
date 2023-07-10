@@ -82,4 +82,26 @@ class ClientServiceTest {
         assertThat(client.getScopes().stream().map(ClientScope::getName).collect(Collectors.toSet())
                 .contains(scopeName)).isTrue();
     }
+
+    @Test
+    void revokeProperty() {
+        String clientId = "client";
+        Client client = Client.builder()
+                .clientId(clientId)
+                .clientSecret("secret")
+                .scopes(SetMapper.mapFromStrings(ClientMapper.getDefaultScopeFunc(), "profile"))
+                .authenticationMethods(SetMapper.mapFromStrings(ClientMapper.getDefaultAuthMethodFunc(), "client_secret_basic"))
+                .authorizationGrantTypes(SetMapper.mapFromStrings(ClientMapper.getDefaultGrantTypeFunc(), "authorization_code",
+                        "refresh_token"))
+                .redirectUrls(SetMapper.mapFromStrings(ClientMapper.getRedirectUrlFunc(), "url"))
+                .build();
+
+        client = service.createClient(client);
+
+        service.revokeProperty(client, ClientScope.builder().name("profile").build());
+
+        client = service.updateClient(client);
+
+        assertThat((client.getScopes().size())).isEqualTo(0);
+    }
 }
