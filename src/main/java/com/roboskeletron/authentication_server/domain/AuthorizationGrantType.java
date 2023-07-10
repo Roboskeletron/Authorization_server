@@ -21,4 +21,17 @@ public class AuthorizationGrantType implements ClientProperty {
     @ManyToOne
     @JsonIgnore
     private Client client;
+
+    @Override
+    public int hashCode() {
+        return name.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof AuthorizationGrantType grantType)
+            return name.equals(grantType.getName());
+
+        return false;
+    }
 }

@@ -21,4 +21,17 @@ public class AuthenticationMethod implements ClientProperty {
     @ManyToOne
     @JsonIgnore
     private Client client;
+
+    @Override
+    public int hashCode() {
+        return name.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof AuthenticationMethod method)
+            return name.equals(method.getName());
+
+        return false;
+    }
 }

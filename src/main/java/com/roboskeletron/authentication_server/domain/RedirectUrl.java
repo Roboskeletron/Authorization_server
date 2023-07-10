@@ -21,4 +21,17 @@ public class RedirectUrl implements ClientProperty {
     @ManyToOne
     @JsonIgnore
     private Client client;
+
+    @Override
+    public int hashCode() {
+        return url.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof RedirectUrl redirectUrl)
+            return url.equals(redirectUrl.getUrl());
+
+        return false;
+    }
 }

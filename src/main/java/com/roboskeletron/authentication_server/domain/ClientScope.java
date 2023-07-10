@@ -21,4 +21,17 @@ public class ClientScope implements ClientProperty {
     @ManyToOne
     @JsonIgnore
     private Client client;
+
+    @Override
+    public int hashCode() {
+        return name.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof ClientScope scope)
+            return name.equals(scope.getName());
+
+        return false;
+    }
 }
