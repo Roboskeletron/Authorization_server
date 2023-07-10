@@ -29,13 +29,10 @@ public class UserService {
         if (userRepository.existsByUsername(user.getUsername()))
             throw new EntityExistsException("name " + user.getUsername() + " has been taken");
         Set<UserAuthority> authorities = new HashSet<>(user.getUserAuthorities());
-        user.getUserAuthorities().clear();
 
-        User savedUser = userRepository.save(user);
+        authorities.forEach(authority -> grantAuthority(user, authority));
 
-        authorities.forEach(authority -> grantAuthority(savedUser, authority));
-
-        return updateUser(savedUser);
+        return userRepository.save(user);
     }
     public User updateUser(User user){
         if (!userRepository.existsById(user.getId()))
