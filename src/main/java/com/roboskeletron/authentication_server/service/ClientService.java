@@ -39,19 +39,12 @@ public class ClientService {
                 .getAuthorizationGrantTypes());
         Set<RedirectUrl> redirectUrls = new HashSet<>(client.getRedirectUrls());
 
-        client.getScopes().clear();
-        client.getAuthenticationMethods().clear();
-        client.getAuthorizationGrantTypes().clear();
-        client.getRedirectUrls().clear();
+        scopes.forEach(scope -> grantProperty(client, scope));
+        authenticationMethods.forEach(method -> grantProperty(client, method));
+        authorizationGrantTypes.forEach(grantType -> grantProperty(client, grantType));
+        redirectUrls.forEach(redirectUrl -> grantProperty(client, redirectUrl));
 
-        var savedClient = clientRepository.save(client);
-
-        scopes.forEach(scope -> grantProperty(savedClient, scope));
-        authenticationMethods.forEach(method -> grantProperty(savedClient, method));
-        authorizationGrantTypes.forEach(grantType -> grantProperty(savedClient, grantType));
-        redirectUrls.forEach(redirectUrl -> grantProperty(savedClient, redirectUrl));
-
-        return updateClient(savedClient);
+        return clientRepository.save(client);
     }
 
     public Client updateClient(Client client){
@@ -96,22 +89,23 @@ public class ClientService {
     }
 
     public  <T extends ClientProperty> void grantProperty(Client client, T property){
-        Set<T> propertySet = getTSet(client);
+        Set<T> propertySet = getTSet(client, property);
         property.setClient(client);
         propertySet.add(property);
     }
 
     public <T extends ClientProperty> void revokeProperty(Client client, T property){
-        Set<T> propertySet = getTSet(client);
+        Set<T> propertySet = getTSet(client, property);
         var repository = getRepository(property);
         Set<T> properties = propertySet.stream().filter(p -> p.equals(property)).collect(Collectors.toSet());
         propertySet.removeAll(properties);
         repository.deleteAll(properties);
     }
 
-    private <T extends ClientProperty> Set<T> getTSet(Client client){
-        Optional<Method> propertySetMethod = Arrays.stream(client.getClass().getMethods())
-                .filter(method -> Set.class.isAssignableFrom(method.getReturnType())).findFirst();
+    private <T extends ClientProperty> Set<T> getTSet(Client client, T type){
+        Optional<Method> propertySetMethod = Arrays.stream(Client.class.getMethods())
+                .filter(method -> method.getGenericReturnType().getTypeName().contains(
+                        type.getClass().getName())).findFirst();
 
         if (propertySetMethod.isEmpty())
             throw new ClientGetPropertyException("Method not found", null);
@@ -129,16 +123,16 @@ public class ClientService {
     private <T extends ClientProperty> JpaRepository getRepository(T property){
         String className = property.getClass().getName();
 
-        if (scopeRepository.getClass().getName().contains(className))
+        if (className.equals(ClientScope.class.getName()))
             return scopeRepository;
 
-        if (authenticationMethodRepository.getClass().getName().contains(className))
+        if (className.equals(AuthenticationMethod.class.getName()))
             return authenticationMethodRepository;
 
-        if (authorizationGrantTypeRepository.getClass().getName().contains(className))
+        if (className.equals(AuthorizationGrantType.class.getName()))
             return authorizationGrantTypeRepository;
 
-        if (redirectUrlRepository.getClass().getName().contains(className))
+        if (className.equals(RedirectUrl.class.getName()))
             return redirectUrlRepository;
 
         throw new ClientGetPropertyException("Unable to get repository for property " + className, null);
