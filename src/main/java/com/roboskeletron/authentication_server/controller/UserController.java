@@ -33,18 +33,11 @@ public class UserController {
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
 
-    @GetMapping("/{id}")
+    @GetMapping
     @PreAuthorize("hasAnyAuthority('super_user', 'admin')")
-    public ResponseEntity<User> getUser(@PathVariable int id) {
-        User user = userService.getUser(id);
-        return ResponseEntity.ok(user);
-    }
-
-    @GetMapping("/{username}")
-    @PreAuthorize("hasAnyAuthority('super_user', 'admin')")
-    public ResponseEntity<User> getUser(@PathVariable String username) {
-        User user = userService.getUser(username);
-        return ResponseEntity.ok(user);
+    public ResponseEntity<User> getUser(@RequestParam(required = false) Integer id,
+                                        @RequestParam(required = false) String username) {
+        return ResponseEntity.ok(getTarget(id, username));
     }
 
     @GetMapping("/page")
