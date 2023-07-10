@@ -30,14 +30,10 @@ public class ClientController {
     private final ClientService clientService;
     private final PasswordEncoder passwordEncoder;
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Client> getClient(@PathVariable int id) {
-        return ResponseEntity.ok(clientService.getClient(id));
-    }
-
-    @GetMapping("/{clientId}")
-    public ResponseEntity<Client> getClient(@PathVariable String clientId) {
-        return ResponseEntity.ok(clientService.getClient(clientId));
+    @GetMapping
+    public ResponseEntity<Client> getClient(@RequestParam(required = false) Integer id,
+                                            @RequestParam(required = false) String clientId) {
+        return ResponseEntity.ok(getTargetClient(id, clientId));
     }
 
     @GetMapping("/page")
@@ -82,7 +78,7 @@ public class ClientController {
     @DeleteMapping("/delete")
     public ResponseEntity<Client> delete(@RequestParam(required = false) Integer id,
                                          @RequestParam(required = false) String clientId) {
-        Client client = getClient(id, clientId);
+        Client client = getTargetClient(id, clientId);
         clientService.deleteClient(client);
 
         return ResponseEntity.ok(client);
@@ -92,7 +88,7 @@ public class ClientController {
     public ResponseEntity<Client> grantScopes(@RequestParam(required = false) Integer id,
                                               @RequestParam(required = false) String clientId,
                                               @RequestParam Set<String> scopes){
-        Client client = getClient(id, clientId);
+        Client client = getTargetClient(id, clientId);
 
         Set<ClientScope> clientScopes = SetMapper.mapFromStrings(ClientMapper.getScopeFunc(),
                 scopes.toArray(new String[0]));
@@ -106,7 +102,7 @@ public class ClientController {
     public ResponseEntity<Client> revokeScopes(@RequestParam(required = false) Integer id,
                                                @RequestParam(required = false) String clientId,
                                                @RequestParam Set<String> scopes){
-        Client client = getClient(id, clientId);
+        Client client = getTargetClient(id, clientId);
 
         Set<ClientScope> clientScopes = SetMapper.mapFromStrings(ClientMapper.getScopeFunc(),
                 scopes.toArray(new String[0]));
@@ -120,7 +116,7 @@ public class ClientController {
     public ResponseEntity<Client> grantAuthenticationMethods(@RequestParam(required = false) Integer id,
                                                              @RequestParam(required = false) String clientId,
                                                              @RequestParam Set<String> methods){
-        Client client = getClient(id, clientId);
+        Client client = getTargetClient(id, clientId);
 
         Set<AuthenticationMethod> authenticationMethods = SetMapper.mapFromStrings(ClientMapper.getAuthMethodFunc(),
                 methods.toArray(new String[0]));
@@ -134,7 +130,7 @@ public class ClientController {
     public ResponseEntity<Client> revokeAuthenticationMethods(@RequestParam(required = false) Integer id,
                                                              @RequestParam(required = false) String clientId,
                                                              @RequestParam Set<String> methods){
-        Client client = getClient(id, clientId);
+        Client client = getTargetClient(id, clientId);
 
         Set<AuthenticationMethod> authenticationMethods = SetMapper.mapFromStrings(ClientMapper.getAuthMethodFunc(),
                 methods.toArray(new String[0]));
@@ -148,7 +144,7 @@ public class ClientController {
     public ResponseEntity<Client> grantGrantTypes(@RequestParam(required = false) Integer id,
                                                              @RequestParam(required = false) String clientId,
                                                              @RequestParam Set<String> grantTypes){
-        Client client = getClient(id, clientId);
+        Client client = getTargetClient(id, clientId);
 
         Set<AuthorizationGrantType> authenticationMethods = SetMapper.mapFromStrings(ClientMapper.getGrantTypeFunc(),
                 grantTypes.toArray(new String[0]));
@@ -162,7 +158,7 @@ public class ClientController {
     public ResponseEntity<Client> revokeGrantTypes(@RequestParam(required = false) Integer id,
                                                               @RequestParam(required = false) String clientId,
                                                               @RequestParam Set<String> grantTypes){
-        Client client = getClient(id, clientId);
+        Client client = getTargetClient(id, clientId);
 
         Set<AuthorizationGrantType> authorizationGrantTypes = SetMapper.mapFromStrings(ClientMapper.getGrantTypeFunc(),
                 grantTypes.toArray(new String[0]));
@@ -176,7 +172,7 @@ public class ClientController {
     public ResponseEntity<Client> grantRedirectUrls(@RequestParam(required = false) Integer id,
                                                   @RequestParam(required = false) String clientId,
                                                   @RequestParam Set<String> urls){
-        Client client = getClient(id, clientId);
+        Client client = getTargetClient(id, clientId);
 
         Set<RedirectUrl> authenticationMethods = SetMapper.mapFromStrings(ClientMapper.getRedirectUrlFunc(),
                 urls.toArray(new String[0]));
@@ -190,7 +186,7 @@ public class ClientController {
     public ResponseEntity<Client> revokeRedirectUrls(@RequestParam(required = false) Integer id,
                                                    @RequestParam(required = false) String clientId,
                                                    @RequestParam Set<String> urls){
-        Client client = getClient(id, clientId);
+        Client client = getTargetClient(id, clientId);
 
         Set<RedirectUrl> authorizationGrantTypes = SetMapper.mapFromStrings(ClientMapper.getRedirectUrlFunc(),
                 urls.toArray(new String[0]));
@@ -204,7 +200,7 @@ public class ClientController {
     public ResponseEntity<Client> changeSecret(@RequestParam(required = false) Integer id,
                                                @RequestParam(required = false) String clientId,
                                                @RequestParam String newSecret){
-        Client client = getClient(id, clientId);
+        Client client = getTargetClient(id, clientId);
 
         if (passwordEncoder.matches(newSecret, client.getClientSecret()))
             throw  new SamePasswordException();
@@ -220,7 +216,7 @@ public class ClientController {
     @PostMapping("secret/reset")
     public ResponseEntity<ClientDTO> resetSecret(@RequestParam(required = false) Integer id,
                                                  @RequestParam(required = false) String clientId){
-        Client client = getClient(id, clientId);
+        Client client = getTargetClient(id, clientId);
         String secret = generatePassword();
 
         client.setClientSecret(passwordEncoder.encode(secret));
@@ -228,7 +224,7 @@ public class ClientController {
         return ResponseEntity.ok(new ClientDTO(client, secret));
     }
 
-    private Client getClient(Integer id, String clientId) {
+    private Client getTargetClient(Integer id, String clientId) {
         if (id != null)
             return clientService.getClient(id);
 
@@ -242,7 +238,7 @@ public class ClientController {
         PasswordGenerator generator = new PasswordGenerator(PasswordValidator.getPasswordPattern());
         String password = generator.generate();
 
-        if (PasswordValidator.isPasswordValid(password))
+        if (!PasswordValidator.isPasswordValid(password))
             throw new InvalidPasswordException();
 
         return password;
