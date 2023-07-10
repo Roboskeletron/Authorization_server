@@ -2,13 +2,14 @@ package com.roboskeletron.authentication_server.service;
 
 import com.roboskeletron.authentication_server.domain.User;
 import com.roboskeletron.authentication_server.domain.UserAuthority;
-import com.roboskeletron.authentication_server.repository.UserRepository;
 import com.roboskeletron.authentication_server.repository.UserAuthorityRepository;
+import com.roboskeletron.authentication_server.repository.UserRepository;
+import com.roboskeletron.authentication_server.util.SetMapper;
+import com.roboskeletron.authentication_server.util.UserMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -75,5 +76,23 @@ class UserServiceTest {
 
         assertThat(user.getUserAuthorities().stream().map(UserAuthority::getName).collect(Collectors.toSet())
                 .contains(scope)).isTrue();
+    }
+
+    @Test
+    void revokeAuthority(){
+        String username = "User";
+        User user = User.builder()
+                .username(username)
+                .password("password")
+                .userAuthorities(SetMapper.mapFromStrings(UserMapper.getDefaultAuthorityFunc(), "read"))
+                .build();
+
+        user = service.createUser(user);
+
+        service.revokeAuthority(user, "read");
+
+        User actualUser = service.updateUser(user);
+
+        assertThat(actualUser.getUserAuthorities().size()).isEqualTo(0);
     }
 }
