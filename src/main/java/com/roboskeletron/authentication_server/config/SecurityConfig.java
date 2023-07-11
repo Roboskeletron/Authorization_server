@@ -5,6 +5,7 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
+import com.roboskeletron.authentication_server.domain.Client;
 import com.roboskeletron.authentication_server.domain.User;
 import com.roboskeletron.authentication_server.security.JpaRegisteredClientRepository;
 import com.roboskeletron.authentication_server.security.JpaUserDetailsManager;
@@ -12,6 +13,7 @@ import com.roboskeletron.authentication_server.service.ClientService;
 import com.roboskeletron.authentication_server.service.UserService;
 import com.roboskeletron.authentication_server.security.JwtAuthoritiesConverter;
 import com.roboskeletron.authentication_server.security.JwtSubjectConverter;
+import com.roboskeletron.authentication_server.util.ClientMapper;
 import com.roboskeletron.authentication_server.util.SetMapper;
 import com.roboskeletron.authentication_server.util.UserMapper;
 import lombok.RequiredArgsConstructor;
@@ -47,6 +49,7 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @Configuration
@@ -63,6 +66,18 @@ public class SecurityConfig {
     private String suPassword;
     @Value("${spring.security.user.authorities}")
     private String suAuthorities;
+    @Value("${spring.security.client.clientId}")
+    private String clientId;
+    @Value("${spring.security.client.secret}")
+    private String clientSecret;
+    @Value("${spring.security.client.scopes}")
+    private Set<String> scopes;
+    @Value("${spring.security.client.auth-methods}")
+    private Set<String> authMethods;
+    @Value("${spring.security.client.grant-types}")
+    private Set<String> grantTypes;
+    @Value("${spring.security.client.redirect-urls}")
+    private Set<String> redirectUrls;
     private KeyPair keyPair = null;
 
     @Bean
@@ -105,7 +120,30 @@ public class SecurityConfig {
 
     @Bean
     public RegisteredClientRepository registeredClientRepository() {
-        return new JpaRegisteredClientRepository(clientService);
+        var registeredClientRepository = new JpaRegisteredClientRepository(clientService);
+
+        if (!clientService.doesClientExists(clientId)){
+            Client client = Client.builder()
+                    .clientId(clientId)
+                    .clientSecret(passwordEncoder().encode(clientSecret))
+                    .scopes(SetMapper.mapFromStrings(
+                            ClientMapper.getScopeFunc(), scopes.toArray(new String[0])))
+                    .authenticationMethods(SetMapper.mapFromStrings(
+                            ClientMapper.getAuthMethodFunc(), authMethods.toArray(new String[0])
+                    ))
+                    .authorizationGrantTypes(SetMapper.mapFromStrings(
+                            ClientMapper.getGrantTypeFunc(), grantTypes.toArray(new String[0])
+                    ))
+                    .redirectUrls(SetMapper.mapFromStrings(
+                            ClientMapper.getRedirectUrlFunc(), redirectUrls.toArray(new String[0])
+                    )).build();
+
+            clientService.createClient(client);
+        }
+
+        clientSecret = null;
+
+        return registeredClientRepository;
     }
 
     @Bean

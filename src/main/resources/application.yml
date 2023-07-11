@@ -21,6 +21,13 @@ spring:
       name: root
       password: suP@ssw0rd
       authorities: super_user
+    client:
+      clientId: client
+      secret: cl1ent.Secret
+      scopes: actions
+      auth-methods: client_secret_basic
+      grant-types: authorization_code,refresh_token
+      redirect-urls: http://client/oauth2/code
     password:
       regex: ^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@#$%^&+=!]).{8,20}$
       error-message: |-
