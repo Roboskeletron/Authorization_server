@@ -1,4 +1,13 @@
 services:
+  authorization-server:
+    image: 'roboskeletron/authserver'
+    depends_on: [postgres]
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/auth_server_dev_db
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      logging.level.com.roboskeletron: info
+    ports:
+      - 9000:9000
   postgres:
     image: 'postgres:latest'
     environment:
